@@ -77,22 +77,13 @@ source install/setup.bash</code></pre>
             <pre><code>ros2 run vff_nav vff_controller</code></pre>
 
             <h3>3. Monitor the simulation</h3>
-            <pre><code># View robot transformation
-ros2 run rqt_tf_tree rqt_tf_tree
+            <pre><code>
+                <!-- # View robot transformation
+ros2 run rqt_tf_tree rqt_tf_tree -->
 
 # Monitor topics
 ros2 topic list
 ros2 topic echo /drone/position</code></pre>
-        </section>
-
-        <section>
-            <h2>Configuration</h2>
-            <p>Customize the VFF parameters in the configuration file:</p>
-            <pre><code># config/vff_params.yaml
-goal_charge: -1.0
-goal_constant_force: 2.0
-obstacle_saturation: 5.0
-damping_constant: 0.5</code></pre>
         </section>
 
         <section>
@@ -103,14 +94,14 @@ damping_constant: 0.5</code></pre>
                 <li><strong>Gazebo not launching:</strong> Ensure all ROS 2 environment variables are set</li>
                 <li><strong>PX4 connection issues:</strong> Check MAVLink communication ports</li>
                 <li><strong>Permission denied:</strong> Add your user to the dialout group:
-                    <code>sudo usermod -a -G dialout $USER</code></li>
+                    <code>sudo usermod -a -G dialout $USER</code>
+                </li>
             </ul>
 
             <h3>Getting Help</h3>
             <p>If you encounter issues, please:</p>
             <ol>
-                <li>Check the <a href="https://github.com/miguel-usp/vff-nav/issues">GitHub Issues</a></li>
-                <li>Review the <a href="model.html">Mathematical Model</a> documentation</li>
+                <li>Check the <a href="team.html">GitHub Issues</a></li>
                 <li>Create a new issue with detailed error information</li>
             </ol>
         </section>

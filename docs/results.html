@@ -34,7 +34,7 @@
     </header>
 
     <main class="container">
-        <section>
+        <!-- <section>
             <h2>Performance Metrics</h2>
 
             <div class="home-grid">
@@ -62,7 +62,7 @@
                     <p>Maintaining safe distances in all scenarios</p>
                 </div>
             </div>
-        </section>
+        </section> -->
 
         <section>
             <h2>Optimal Parameters</h2>
@@ -79,37 +79,37 @@
                 <tbody>
                     <tr>
                         <td>\(Q_{goal}\)</td>
-                        <td>-2.5 C</td>
+                        <td>X C</td>
                         <td>Goal charge strength</td>
                     </tr>
                     <tr>
                         <td>\(F_{goal, const}\)</td>
-                        <td>1.8 N</td>
+                        <td>X N</td>
                         <td>Constant attraction to goal</td>
                     </tr>
                     <tr>
                         <td>\(\varepsilon_{goal}\)</td>
-                        <td>0.3 m</td>
+                        <td>X m</td>
                         <td>Goal softening factor</td>
                     </tr>
                     <tr>
                         <td>\(\varepsilon_{obs}\)</td>
-                        <td>0.5 m</td>
+                        <td>X m</td>
                         <td>Obstacle softening factor</td>
                     </tr>
                     <tr>
                         <td>\(F_{\text{sat}}\)</td>
-                        <td>8.2 N</td>
+                        <td>X N</td>
                         <td>Obstacle saturation threshold</td>
                     </tr>
                     <tr>
                         <td>\(F_{\text{fac,squash}}\)</td>
-                        <td>6.5 N</td>
+                        <td>X N</td>
                         <td>Post-squashing force factor</td>
                     </tr>
                     <tr>
                         <td>\(K_{damping}\)</td>
-                        <td>0.7 N·s/m</td>
+                        <td>X N·s/m</td>
                         <td>Velocity damping constant</td>
                     </tr>
                 </tbody>
@@ -158,55 +158,55 @@
             </div>
         </section>
 
-        <section>
-            <h2>Simulation Results</h2>
+        <!-- <section>
+                <h2>Simulation Results</h2>
 
-            <h3>Environment Scenarios Tested</h3>
-            <ul>
-                <li><strong>Sparse Environment:</strong> 3-5 obstacles, 90% success rate</li>
-                <li><strong>Moderate Environment:</strong> 6-10 obstacles, 85% success rate</li>
-                <li><strong>Dense Environment:</strong> 11-15 obstacles, 75% success rate</li>
-                <li><strong>Dynamic Environment:</strong> Moving obstacles, 80% success rate</li>
-            </ul>
+                <h3>Environment Scenarios Tested</h3>
+                <ul>
+                    <li><strong>Sparse Environment:</strong> 3-5 obstacles, 90% success rate</li>
+                    <li><strong>Moderate Environment:</strong> 6-10 obstacles, 85% success rate</li>
+                    <li><strong>Dense Environment:</strong> 11-15 obstacles, 75% success rate</li>
+                    <li><strong>Dynamic Environment:</strong> Moving obstacles, 80% success rate</li>
+                </ul>
 
-            <h3>Performance Comparison</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Metric</th>
-                        <th>VFF-Nav</th>
-                        <th>Classical APF</th>
-                        <th>Improvement</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Success Rate</td>
-                        <td>98.7%</td>
-                        <td>82.3%</td>
-                        <td>+16.4%</td>
-                    </tr>
-                    <tr>
-                        <td>Path Efficiency</td>
-                        <td>92%</td>
-                        <td>78%</td>
-                        <td>+14%</td>
-                    </tr>
-                    <tr>
-                        <td>Local Minima Escapes</td>
-                        <td>95%</td>
-                        <td>45%</td>
-                        <td>+50%</td>
-                    </tr>
-                    <tr>
-                        <td>Computation Time</td>
-                        <td>45ms</td>
-                        <td>120ms</td>
-                        <td>-62.5%</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
+                <h3>Performance Comparison</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>VFF-Nav</th>
+                            <th>Classical APF</th>
+                            <th>Improvement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Success Rate</td>
+                            <td>98.7%</td>
+                            <td>82.3%</td>
+                            <td>+16.4%</td>
+                        </tr>
+                        <tr>
+                            <td>Path Efficiency</td>
+                            <td>92%</td>
+                            <td>78%</td>
+                            <td>+14%</td>
+                        </tr>
+                        <tr>
+                            <td>Local Minima Escapes</td>
+                            <td>95%</td>
+                            <td>45%</td>
+                            <td>+50%</td>
+                        </tr>
+                        <tr>
+                            <td>Computation Time</td>
+                            <td>45ms</td>
+                            <td>120ms</td>
+                            <td>-62.5%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section> -->
 
         <section>
             <h2>Future Work</h2>

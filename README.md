@@ -183,9 +183,8 @@ If you use this work in your research, please cite:
   howpublished={\url{https://github.com/miguel-usp/tcc-scanair-doc}}
 }
 ```
-
-```<div align="center">
+<div align="center">
 Developed at Escola Politécnica da USP
 Department of Computer Engineering and Digital Systems
 
-</div> ```
+</div> 

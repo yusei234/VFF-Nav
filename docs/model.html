@@ -109,6 +109,78 @@
                 \vec{F}_{damping} = -K_{damping} \cdot \vec{v}
                 \]
             </div>
+
+            <h3>From Guidance Field to Desired Velocity</h3>
+            <p>Let \(\vec{F}_{\text{field}}\) define the direction in which the drone "should" move:</p>
+
+            <p><strong>Compute the unit direction:</strong></p>
+            <div class="math-block">
+                \[
+                \hat{d} = \begin{cases}
+                \dfrac{\vec{F}_{\text{field}}}{\Vert \vec{F}_{\text{field}} \Vert}, & \text{if } \vec{F}_{\text{field}}
+                \neq \vec{0} \\
+                \vec{0}, & \text{otherwise}
+                \end{cases}
+                \]
+            </div>
+
+            <p>Fix a target scalar speed \(v_{\text{ideal}} > 0\) (constant in the code).</p>
+
+            <p><strong>Define the desired velocity vector:</strong></p>
+            <div class="math-block">
+                \[
+                \vec{v}_{\text{set}} = v_{\text{ideal}} \cdot \hat{d}
+                \]
+            </div>
+
+            <p>So the electrostatic part now answers: "Which direction should I go, if I want to fly at speed
+                \(v_{\text{ideal}}\)?" and no longer directly dictates the force.</p>
+
+            <h3>Velocity Tracking with Vector PID</h3>
+            <p>A 3D PID controller tracks \(\vec{v}_{\text{set}}\) by adjusting the force applied to the drone.</p>
+
+            <p><strong>PID structure:</strong></p>
+            <p>You have a scalar PID:</p>
+            <ul>
+                <li>Input: scalar setpoint, scalar measurement, time step \(dt\)</li>
+                <li>Output: scalar control effort (interpreted as force in that axis)</li>
+            </ul>
+
+            <p>and a vector wrapper (PidVectorIsomorphic) that applies this PID independently to \(x\), \(y\) and \(z\)
+                components:</p>
+            <div class="math-block">
+                \[
+                \vec{F}_{\text{PID}} = \begin{bmatrix} u_x \\ u_y \\ u_z \end{bmatrix} = \begin{bmatrix}
+                \text{PID}_x(v_{\text{set},x}, v_x, dt) \\ \text{PID}_y(v_{\text{set},y}, v_y, dt) \\
+                \text{PID}_z(v_{\text{set},z}, v_z, dt) \end{bmatrix}
+                \]
+            </div>
+
+            <p><strong>Given:</strong></p>
+            <ul>
+                <li>Setpoint: \(\vec{v}_{\text{set}}\)</li>
+                <li>Measurement: current velocity \(\vec{v}\)</li>
+                <li>Output: control force \(\vec{F}_{\text{PID}}\)</li>
+            </ul>
+
+            <p>Since the drone mass is fixed at \(m_{\text{drone}} = 1 \, \text{kg}\), the dynamics are:</p>
+            <div class="math-block">
+                \[
+                \vec{a} = \frac{\vec{F}_{\text{PID}}}{m_{\text{drone}}} = \vec{F}_{\text{PID}}
+                \]
+            </div>
+
+            <p>So PID output has units of Newtons and is exactly the net force applied to the drone in the simulation.
+            </p>
+
+            <p><strong>Gains and dependency:</strong></p>
+            <p>The proportional gain \(k_P\) is fixed at \(1\). \(k_I\) and \(k_D\) become parameters to be tuned by the
+                calibration system.</p>
+            <p>Fixing \(k_P = 1\) is a way to avoid a useless extra degree of freedom: the overall scaling of the
+                feedback force can already be controlled through other parameters (e.g., \(v_{\text{ideal}}\), squashing
+                factors, charges). If you allowed \(k_P\) to float freely and also scaled the field / speeds, you'd
+                introduce a linear dependency where multiple parameter combinations produce essentially the same
+                behavior.</p>
         </section>
 
         <section>
@@ -118,6 +190,7 @@
                 <li>Drone mass: \(m_{drone} = 1 \left(kg\right)\)</li>
                 <li>Drone charge: \(Q_{drone} = 1 \left(C\right)\)</li>
                 <li>Obstacle charges: \(Q_i \in [0, +1] \left(C\right)\)</li>
+                <li>Ideal velocity: \(v_{\text{ideal}}\) = 5.0 \left(m.s\right)</li>
             </ul>
         </section>
 
@@ -177,6 +250,18 @@
                         <td>N·s/m</td>
                         <td>\([0, +\infty[\)</td>
                     </tr>
+                    <tr>
+                        <td>\(k_I\)</td>
+                        <td>Integral gain</td>
+                        <td>-</td>
+                        <td>\([0, +\infty[\)</td>
+                    </tr>
+                    <tr>
+                        <td>\(k_D\)</td>
+                        <td>Derivative gain</td>
+                        <td>-</td>
+                        <td>\([0, +\infty[\)</td>
+                    </tr>
                 </tbody>
             </table>
         </section>
@@ -191,6 +276,8 @@
                 </li>
                 <li><strong>Performance optimization:</strong> For \(\lvert \tanh(x) - x \rvert < 0.01\) when \(x \in
                         [-0.3, 0.3]\), we skip squashing to improve performance.</li>
+                <li><strong>Velocity control:</strong> The system uses a two-stage approach: electrostatic field for
+                    direction guidance and PID control for velocity tracking.</li>
             </ul>
         </section>
 

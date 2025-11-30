@@ -75,11 +75,52 @@ body {
 
 /* Header */
 header {
-    background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+    background: linear-gradient(rgba(44, 62, 80, 0.7), rgba(52, 73, 94, 0.7)),
+        url('../images/header-bg.jpg') center/cover no-repeat;
     color: white;
     padding: 3rem 0;
     text-align: center;
     margin-bottom: 2rem;
+    position: relative;
+}
+
+/* Alternative without gradient overlay */
+.header-plain {
+    background: url('../images/header-bg.jpg') center/cover no-repeat;
+    color: white;
+    padding: 3rem 0;
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+/* For dark text on light background images */
+.header-light {
+    background: url('../images/header-bg-light.jpg') center/cover no-repeat;
+    color: #333;
+    padding: 3rem 0;
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+/* Add a dark overlay for better text readability */
+.header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    /* Dark overlay */
+    z-index: 1;
+}
+
+.header>.container {
+    position: relative;
+    z-index: 2;
+    /* Ensure text appears above the overlay */
 }
 
 h1 {

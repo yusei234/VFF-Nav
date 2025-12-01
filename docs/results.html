@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Results - VFF-Nav</title>
     <link rel="stylesheet" href="styles/main.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 
 <body>
@@ -40,34 +42,34 @@
             <div class="home-grid">
                 <div class="card">
                     <h3>🎯 Success Rate</h3>
-                    <p><strong>98.7%</strong> successful navigation in complex environments</p>
-                    <p>Across 500+ simulation trials with varying obstacle densities</p>
+                    <p><strong>60.0%</strong> successful navigation in complex environments</p>
                 </div>
 
-                <div class="card">
+                 <div class="card">
                     <h3>⚡ Response Time</h3>
                     <p><strong>&lt;50ms</strong> obstacle avoidance response</p>
                     <p>Real-time performance suitable for dynamic environments</p>
-                </div>
+                </div> 
 
                 <div class="card">
                     <h3>📏 Path Efficiency</h3>
-                    <p><strong>92%</strong> optimal path efficiency</p>
-                    <p>Compared to theoretical shortest paths</p>
+                    <p><strong>63%</strong> optimal path efficiency</p>
+                    <p>Heuristic evaluation applying expected path length metrics</p>
                 </div>
 
-                <div class="card">
+                 <div class="card">
                     <h3>🛡️ Safety Margin</h3>
                     <p><strong>0.8m</strong> average obstacle clearance</p>
                     <p>Maintaining safe distances in all scenarios</p>
-                </div>
+                </div> 
             </div>
         </section> -->
 
         <section>
             <h2>Optimal Parameters</h2>
-            <p>After extensive heuristic optimization, the following parameters yielded the best performance:</p>
+            <p>After extensive calibration simulation, the following parameters yielded the best performance:</p>
 
+            <h3>VFF Guidance Parameters</h3>
             <table>
                 <thead>
                     <tr>
@@ -79,38 +81,172 @@
                 <tbody>
                     <tr>
                         <td>\(Q_{goal}\)</td>
-                        <td>X C</td>
+                        <td>-278.21</td>
                         <td>Goal charge strength</td>
                     </tr>
                     <tr>
                         <td>\(F_{goal, const}\)</td>
-                        <td>X N</td>
+                        <td>253.05</td>
                         <td>Constant attraction to goal</td>
                     </tr>
                     <tr>
-                        <td>\(\varepsilon_{goal}\)</td>
-                        <td>X m</td>
-                        <td>Goal softening factor</td>
-                    </tr>
-                    <tr>
-                        <td>\(\varepsilon_{obs}\)</td>
-                        <td>X m</td>
-                        <td>Obstacle softening factor</td>
-                    </tr>
-                    <tr>
                         <td>\(F_{\text{sat}}\)</td>
-                        <td>X N</td>
+                        <td>427.02</td>
                         <td>Obstacle saturation threshold</td>
                     </tr>
                     <tr>
                         <td>\(F_{\text{fac,squash}}\)</td>
-                        <td>X N</td>
+                        <td>235.98</td>
                         <td>Post-squashing force factor</td>
                     </tr>
                     <tr>
-                        <td>\(K_{damping}\)</td>
-                        <td>X N·s/m</td>
-                        <td>Velocity damping constant</td>
+                        <td>\(Q_{\text{vertical,obs}}\)</td>
+                        <td>6.56</td>
+                        <td>Vertical obstacle charge modifier</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Velocity PID Parameters</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Optimal Value</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>\(K_x, K_y, K_z\)</td>
+                        <td>0.073, 0.391, 0.583</td>
+                        <td>Velocity P gains (x, y, z)</td>
+                    </tr>
+                    <tr>
+                        <td>\(K_{i,x}, K_{i,y}, K_{i,z}\)</td>
+                        <td>0.00022, 0.091, 0.066</td>
+                        <td>Velocity I gains (x, y, z)</td>
+                    </tr>
+                    <tr>
+                        <td>\(K_{d,x}, K_{d,y}, K_{d,z}\)</td>
+                        <td>0.043, 0.024, 0.0089</td>
+                        <td>Velocity D gains (x, y, z)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Attitude Controller Parameters</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Optimal Value</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>MC_ROLL_P</td>
+                        <td>5.41</td>
+                        <td>Roll attitude gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_PITCH_P</td>
+                        <td>8.00</td>
+                        <td>Pitch attitude gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_YAW_P</td>
+                        <td>3.87</td>
+                        <td>Yaw attitude gain</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Rate Controller Parameters</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Optimal Value</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>MC_ROLLRATE_P</td>
+                        <td>1.00</td>
+                        <td>Roll rate P gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_ROLLRATE_I</td>
+                        <td>0.081</td>
+                        <td>Roll rate I gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_ROLLRATE_D</td>
+                        <td>0.0013</td>
+                        <td>Roll rate D gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_ROLLRATE_FF</td>
+                        <td>1.48</td>
+                        <td>Roll rate feedforward</td>
+                    </tr>
+                    <tr>
+                        <td>MC_ROLLRATE_K</td>
+                        <td>0.504</td>
+                        <td>Roll rate global gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_PITCHRATE_P</td>
+                        <td>1.00</td>
+                        <td>Pitch rate P gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_PITCHRATE_I</td>
+                        <td>0.055</td>
+                        <td>Pitch rate I gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_PITCHRATE_D</td>
+                        <td>0.0034</td>
+                        <td>Pitch rate D gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_PITCHRATE_FF</td>
+                        <td>1.30</td>
+                        <td>Pitch rate feedforward</td>
+                    </tr>
+                    <tr>
+                        <td>MC_PITCHRATE_K</td>
+                        <td>0.50</td>
+                        <td>Pitch rate global gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_YAWRATE_P</td>
+                        <td>1.00</td>
+                        <td>Yaw rate P gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_YAWRATE_I</td>
+                        <td>0.070</td>
+                        <td>Yaw rate I gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_YAWRATE_D</td>
+                        <td>0.0024</td>
+                        <td>Yaw rate D gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_YAWRATE_FF</td>
+                        <td>1.21</td>
+                        <td>Yaw rate feedforward</td>
+                    </tr>
+                    <tr>
+                        <td>MC_YAWRATE_K</td>
+                        <td>0.516</td>
+                        <td>Yaw rate global gain</td>
                     </tr>
                 </tbody>
             </table>

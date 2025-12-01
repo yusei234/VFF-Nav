@@ -37,91 +37,83 @@
         <section>
             <h2>Prerequisites</h2>
             <ul>
-                <li>Ubuntu 22.04+ or 24.04+</li>
+                <li>Ubuntu 24.04+</li>
                 <li>ROS 2 Jazzy Jalisco</li>
-                <li>Gazebo Fortress or Garden</li>
+                <li>Gazebo Harmonic</li>
                 <li>PX4 Autopilot</li>
                 <li>Python 3.10</li>
+                <li>Mosquitto (MQTT broker)</li>
             </ul>
 
-            <h3>Python Prerequisites</h3>
-            <pre><code>
-            # For ROS 2 package
-            sudo apt install python3-paho-mqtt
+            <h3>System-wide Python Dependency (for ROS 2)</h3>
+            <pre><code>sudo apt install python3-paho-mqtt</code></pre>
 
-            # For web controller
-            pip install flask flask-socketio paho-mqtt "numpy>=1.24.0" "numpy-quaternion>=2023.0.0"
+            <h3>MAVROS Installation (with extras & messages)</h3>
+            <pre><code>sudo apt-get install -y ros-jazzy-mavros ros-jazzy-mavros-extras ros-jazzy-mavros-msgs</code></pre>
 
-            # For MQTT input script
-            pip install paho-mqtt pynput "numpy>=1.24.0" "numpy-quaternion>=2023.0.0"
-            </code></pre>
+            <h3>Install GeographicLib Datasets</h3>
+            <pre><code>wget https://raw.githubusercontent.com/mavlink/mavros/ros2/mavros/scripts/install_geographiclib_datasets.sh
+chmod +x install_geographiclib_datasets.sh
+sudo ./install_geographiclib_datasets.sh</code></pre>
+
+            <h3>QGroundControl (GCS)</h3>
+            <p>Download from:</p>
+            <a href="https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html">
+                QGroundControl Download Page
+            </a>
         </section>
 
         <section>
             <h2>Installation</h2>
 
-            <h3>1. Clone the repository</h3>
-            <pre><code>git clone --no-checkout https://github.com/miguel-usp/vff-nav.git ros_sim
-cd ros_sim</code></pre>
+            <h3>Clone the Repository</h3>
+            <pre><code>git clone https://github.com/miguel-usp/vff-nav.git</code></pre>
 
-            <h3>2. Setup the simulation environment</h3>
-            <pre><code># Install ROS 2 dependencies
-sudo apt update
-sudo apt install ros-jazzy-desktop
+            <h3>Web Controller Setup (run once)</h3>
+            <pre><code>cd ~/vff-nav/ros_sim/other_commands
+python3 -m venv .venv
+source .venv/bin/activate
+pip install flask flask-socketio paho-mqtt "numpy>=1.24.0" "numpy-quaternion>=2023.0.0"</code></pre>
 
-# Setup PX4 environment
-git submodule update --init --recursive
-make px4_sitl gazebo-classic</code></pre>
+            <h3>Adjust World and Drone Files</h3>
+            <p>Replace the <strong>content</strong> of the originals, keep the filenames:</p>
+            <ul>
+                <li>~/PX4-Autopilot/Tools/simulation/gz/models/x500_lidar_front</li>
+                <li>~/PX4-Autopilot/Tools/simulation/gz/worlds</li>
+            </ul>
 
-            <h3>3. Build the workspace</h3>
-            <pre><code>colcon build
-source install/setup.bash</code></pre>
+            <p>Use the modified drone and world from:</p>
+            <pre><code>~/vff-nav/ros_sim/px4_changes</code></pre>
         </section>
 
         <section>
-            <h2>Running the Simulation</h2>
+            <h2>Running</h2>
 
-            <h3>1. Start PX4 SITL with Gazebo</h3>
+            <h3>1. Start PX4</h3>
             <pre><code>cd PX4-Autopilot/
 PX4_GZ_WORLD=walls make px4_sitl gz_x500_lidar_front</code></pre>
 
-            <h3>2. Launch MAVROS</h3>
-            <p>In another terminal:</p>
+            <h3>2. Start MAVROS (using QGroundControl as GCS)</h3>
             <pre><code>ros2 launch mavros px4.launch fcu_url:=udp://:14540@localhost:14557 gcs_url:=udp://@77.22.9.4:14550</code></pre>
 
-            <h3>3. Start ROS-Gazebo Bridge</h3>
-            <p>In another terminal:</p>
-            <pre><code>
-ros2 run ros_gz_bridge parameter_bridge \
+            <h3>3. ROS 2 ↔ Gazebo Bridge</h3>
+            <pre><code>ros2 run ros_gz_bridge parameter_bridge \
   "/world/walls/model/x500_lidar_front_0/link/lidar_sensor_link/sensor/lidar_horizontal/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan" \
   "/world/walls/model/x500_lidar_front_0/link/lidar_sensor_link/sensor/lidar_downward/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan" \
   "/world/walls/model/x500_lidar_front_0/link/lidar_sensor_link/sensor/lidar_upward/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan"</code></pre>
 
-            <h3>4. Start MQTT Broker</h3>
-            <p>In another terminal:</p>
-            <pre><code>
-                mosquitto
-            </code></pre>
-
-            <h3>5. Run VFF Controller</h3>
-            <p>In another terminal:</p>
-            <pre><code>
-                source /opt/ros/jazzy/setup.bash
-source ~/rosenv/bin/activate
-cd ~/ros2_ws
-colcon build
+            <h3>4. Offboard Velocity Node</h3>
+            <pre><code>source /opt/ros/jazzy/setup.bash
+cd ~/vff-nav/ros_sim
 source install/setup.bash
-ros2 run my_package offboard_velocity
-            </code></pre>
+ros2 run my_package offboard_velocity</code></pre>
 
-            <h3>6. Web Controller (Optional)</h3>
-            <p>In another terminal:</p>
-            <pre><code>
-                mosquitto
-cd ~/ros2_ws/other_commands
-source venv/bin/activate
+            <h3>5. Web Controller (run after offboard velocity & motors spinning)</h3>
+            <pre><code>cd ~/vff-nav/ros_sim/other_commands
+source .venv/bin/activate
 python3 web_controller.py
-            </code></pre>
+
+running on: http://localhost:5000/</code></pre>
         </section>
 
         <section>
@@ -136,6 +128,20 @@ python3 web_controller.py
                 <li><strong>Permission denied:</strong> Add your user to the dialout group:
                     <code>sudo usermod -a -G dialout $USER</code>
                 </li>
+            </ul>
+
+            <h3>MAVROS Pluginlists</h3>
+            <p>If needed, replace the pluginlists at:</p>
+            <pre><code>/opt/ros/jazzy/share/mavros/launch/px4_pluginlists.yaml</code></pre>
+            <p>With the version from:</p>
+            <pre><code>~/vff-nav/ros_sim/extras</code></pre>
+
+            <h3>PX4 Crashes</h3>
+            <p>If PX4 crashes, restart:</p>
+            <ul>
+                <li>PX4 SITL</li>
+                <li><code>offboard_velocity</code></li>
+                <li>Web Controller</li>
             </ul>
 
             <h3>Getting Help</h3>

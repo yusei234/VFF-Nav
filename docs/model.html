@@ -124,73 +124,84 @@
                 \]
             </div>
 
-            <p>Fix a target scalar speed \(v_{\text{ideal}} > 0\) (constant in the code).</p>
+            <p>Fix a target scalar speed \(v_{\text{ideal}} > 0\) (constant in the code) and a slow-down distance
+                \(d_{\text{slow}} = 4 \, \text{m}\).</p>
 
             <p><strong>Define the desired velocity vector:</strong></p>
             <div class="math-block">
                 \[
-                \vec{v}_{\text{set}} = v_{\text{ideal}} \cdot \hat{d}
+                \vec{v}_{\text{set}} = v_{\text{ideal}} \cdot \max\left(\frac{1}{3},
+                \frac{\lVert\vec{r}_g\rVert}{d_{\text{slow}}}\right) \cdot \hat{d}
                 \]
             </div>
 
-            <p>So the electrostatic part now answers: "Which direction should I go, if I want to fly at speed
-                \(v_{\text{ideal}}\)?" and no longer directly dictates the force.</p>
+            <p>This scales down the velocity as the drone approaches the goal, ensuring smooth arrival.</p>
 
-            <h3>Velocity Tracking with Vector PID</h3>
-            <p>A 3D PID controller tracks \(\vec{v}_{\text{set}}\) by adjusting the force applied to the drone.</p>
+            <h3>Control System</h3>
+            <p>After computing \(\vec{v}_{\text{set}}\), the control system is designed to resemble the PX4 control
+                architecture to allow for meaningful calibration results. The system follows this cascade structure:</p>
 
-            <p><strong>PID structure:</strong></p>
-            <p>You have a scalar PID:</p>
-            <ul>
-                <li>Input: scalar setpoint, scalar measurement, time step \(dt\)</li>
-                <li>Output: scalar control effort (interpreted as force in that axis)</li>
-            </ul>
-
-            <p>and a vector wrapper (PidVectorIsomorphic) that applies this PID independently to \(x\), \(y\) and \(z\)
-                components:</p>
-            <div class="math-block">
-                \[
-                \vec{F}_{\text{PID}} = \begin{bmatrix} u_x \\ u_y \\ u_z \end{bmatrix} = \begin{bmatrix}
-                \text{PID}_x(v_{\text{set},x}, v_x, dt) \\ \text{PID}_y(v_{\text{set},y}, v_y, dt) \\
-                \text{PID}_z(v_{\text{set},z}, v_z, dt) \end{bmatrix}
-                \]
-            </div>
-
-            <p><strong>Given:</strong></p>
-            <ul>
-                <li>Setpoint: \(\vec{v}_{\text{set}}\)</li>
-                <li>Measurement: current velocity \(\vec{v}\)</li>
-                <li>Output: control force \(\vec{F}_{\text{PID}}\)</li>
-            </ul>
-
-            <p>Since the drone mass is fixed at \(m_{\text{drone}} = 1 \, \text{kg}\), the dynamics are:</p>
-            <div class="math-block">
-                \[
-                \vec{a} = \frac{\vec{F}_{\text{PID}}}{m_{\text{drone}}} = \vec{F}_{\text{PID}}
-                \]
-            </div>
-
-            <p>So PID output has units of Newtons and is exactly the net force applied to the drone in the simulation.
-            </p>
-
-            <p><strong>Gains and dependency:</strong></p>
-            <p>The proportional gain \(k_P\) is fixed at \(1\). \(k_I\) and \(k_D\) become parameters to be tuned by the
-                calibration system.</p>
-            <p>Fixing \(k_P = 1\) is a way to avoid a useless extra degree of freedom: the overall scaling of the
-                feedback force can already be controlled through other parameters (e.g., \(v_{\text{ideal}}\), squashing
-                factors, charges). If you allowed \(k_P\) to float freely and also scaled the field / speeds, you'd
-                introduce a linear dependency where multiple parameter combinations produce essentially the same
-                behavior.</p>
+            <ol>
+                <li><strong>Velocity PID Controller</strong> - Computes desired acceleration setpoint from velocity
+                    signal</li>
+                <li><strong>Thrust Vector Computation</strong> - Converts acceleration to thrust force (world frame)
+                </li>
+                <li><strong>Thrust Command Extraction</strong> - Projects thrust along body z-axis and normalizes</li>
+                <li><strong>Desired Attitude Computation</strong> - Derives quaternion from thrust vector and velocity
+                    direction</li>
+                <li><strong>Attitude Error to Body-Rate Setpoint</strong> - P-controller on attitude error quaternion
+                </li>
+                <li><strong>Body-Rate Clamping</strong> - Saturates angular velocity setpoints to maximum limits</li>
+                <li><strong>Noise-Filtered Angular Velocity Derivative</strong> - 2nd-order Butterworth low-pass filter
+                    on derivative of angular velocity measurement
+                </li>
+                <li><strong>Torque PID Controller</strong> - Computes body torque commands from body rate signal</li>
+                <li><strong>Yaw Torque Filtering</strong> - 1st-order low-pass on yaw torque output</li>
+                <li><strong>Force and Torque Application</strong> - Converts normalized commands to Newton
+                    forces/torques in simulation</li>
+            </ol>
         </section>
 
         <section>
             <h2>System Invariants</h2>
+
+            <h3>VFF Guidance Constants</h3>
             <ul>
-                <li>Coulomb's constant (analog): \(k_e = 1 \left(N \cdot m^2 \cdot C^{-2}\right)\)</li>
-                <li>Drone mass: \(m_{drone} = 1 \left(kg\right)\)</li>
-                <li>Drone charge: \(Q_{drone} = 1 \left(C\right)\)</li>
-                <li>Obstacle charges: \(Q_i \in [0, +1] \left(C\right)\)</li>
-                <li>Ideal velocity: \(v_{\text{ideal}}\) = 5.0 \left(m.s\right)</li>
+                <li>Coulomb's constant (analog): \(k_e = 1 \, \text{N} \cdot \text{m}^2 \cdot \text{C}^{-2}\)</li>
+                <li>Drone charge: \(Q_{drone} = 1 \, \text{C}\)</li>
+                <li>Obstacle charges: \(Q_i \in [0, +1] \, \text{C}\)</li>
+                <li>Ideal velocity: \(v_{\text{ideal}} = 5.0 \, \text{m/s}\)</li>
+                <li>Slow-down distance: \(d_{\text{slow}} = 4.0 \, \text{m}\)</li>
+            </ul>
+
+            <h3>Physical Properties</h3>
+            <ul>
+                <li>Drone mass: \(m = 2.064 \, \text{kg}\)</li>
+                <li>Drone inertia: \(I_x = 0.034 \, \text{kg} \cdot \text{m}^2, \, I_y = 0.035 \, \text{kg} \cdot
+                    \text{m}^2, \, I_z = 0.062 \, \text{kg} \cdot \text{m}^2\)</li>
+                <li>Drone shape (box): \(0.6 \times 0.6 \times 0.27 \, \text{m}\)</li>
+                <li>Gravity: \(g = 9.81 \, \text{m/s}^2\)</li>
+            </ul>
+
+            <h3>Actuator Limits</h3>
+            <ul>
+                <li>Maximum thrust: \(T_{\max} = 24.0 \, \text{N}\)</li>
+                <li>Roll arm length: \(L_{\text{roll}} = 0.087 \, \text{m}\)</li>
+                <li>Pitch arm length: \(L_{\text{pitch}} = 0.087 \, \text{m}\)</li>
+                <li>Maximum yaw moment: \(Q_{\max} = 0.192 \, \text{N} \cdot \text{m}\)</li>
+            </ul>
+
+            <h3>Control System Fixed Parameters</h3>
+            <ul>
+                <li>Simulation timestep: \(\Delta t = 1/60 \, \text{s} \approx 0.0167 \, \text{s}\)</li>
+                <li>Yaw torque filter cutoff: \(f_{c,\text{yaw}} = 2.0 \, \text{Hz}\)</li>
+                <li>IMU gyro filter cutoff: \(f_{c,\text{gyro}} = 20.0 \, \text{Hz}\)</li>
+                <li>Max roll rate: \(\omega_{\max,\phi} = 220.0 \, \text{rad/s}\)</li>
+                <li>Max pitch rate: \(\omega_{\max,\theta} = 220.0 \, \text{rad/s}\)</li>
+                <li>Max yaw rate: \(\omega_{\max,\psi} = 200.0 \, \text{rad/s}\)</li>
+                <li>Roll rate integrator limit: \(I_{\max,\phi} = 0.3\)</li>
+                <li>Pitch rate integrator limit: \(I_{\max,\theta} = 0.3\)</li>
+                <li>Yaw rate integrator limit: \(I_{\max,\psi} = 0.3\)</li>
             </ul>
         </section>
 
@@ -198,69 +209,118 @@
             <h2>Parameters for Calibration</h2>
             <p>These parameters are determined by the simulation calibration program.</p>
 
+            <h3>VFF Guidance Parameters</h3>
             <table>
                 <thead>
                     <tr>
                         <th>Parameter</th>
                         <th>Description</th>
-                        <th>Unit</th>
-                        <th>Range</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>\(Q_{goal}\)</td>
                         <td>Goal charge</td>
-                        <td>C</td>
-                        <td>\(]-\infty, 0[\)</td>
                     </tr>
                     <tr>
                         <td>\(F_{goal, const}\)</td>
                         <td>Goal constant attraction</td>
-                        <td>N</td>
-                        <td>\([0, +\infty[\)</td>
-                    </tr>
-                    <tr>
-                        <td>\(\varepsilon_{goal}\)</td>
-                        <td>Goal softening factor</td>
-                        <td>m</td>
-                        <td>\([0, +\infty[\)</td>
-                    </tr>
-                    <tr>
-                        <td>\(\varepsilon_{obs}\)</td>
-                        <td>Obstacle softening factor</td>
-                        <td>m</td>
-                        <td>\([0, +\infty[\)</td>
                     </tr>
                     <tr>
                         <td>\(F_{\text{sat}}\)</td>
                         <td>Obstacle total saturation scale</td>
-                        <td>N</td>
-                        <td>\(]0, +\infty[\)</td>
                     </tr>
                     <tr>
                         <td>\(F_{\text{fac,squash}}\)</td>
                         <td>Obstacle total factor after squashing</td>
-                        <td>N</td>
-                        <td>\([0, +\infty[\)</td>
                     </tr>
                     <tr>
-                        <td>\(K_{damping}\)</td>
-                        <td>Damping constant</td>
-                        <td>N·s/m</td>
-                        <td>\([0, +\infty[\)</td>
+                        <td>\(Q_{\text{vertical,obs}}\)</td>
+                        <td>Vertical obstacle charge modifier</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Velocity PID Parameters</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>\(K_x, K_y, K_z\)</td>
+                        <td>Velocity P gains (x, y, z axes)</td>
                     </tr>
                     <tr>
-                        <td>\(k_I\)</td>
-                        <td>Integral gain</td>
-                        <td>-</td>
-                        <td>\([0, +\infty[\)</td>
+                        <td>\(K_{i,x}, K_{i,y}, K_{i,z}\)</td>
+                        <td>Velocity I gains (x, y, z axes)</td>
                     </tr>
                     <tr>
-                        <td>\(k_D\)</td>
-                        <td>Derivative gain</td>
-                        <td>-</td>
-                        <td>\([0, +\infty[\)</td>
+                        <td>\(K_{d,x}, K_{d,y}, K_{d,z}\)</td>
+                        <td>Velocity D gains (x, y, z axes)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Attitude Controller Parameters</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>MC_ROLL_P</td>
+                        <td>Roll attitude gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_PITCH_P</td>
+                        <td>Pitch attitude gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_YAW_P</td>
+                        <td>Yaw attitude gain</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Rate Controller Parameters</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>MC_ROLLRATE_P, MC_ROLLRATE_I, MC_ROLLRATE_D</td>
+                        <td>Roll rate PID gains</td>
+                    </tr>
+                    <tr>
+                        <td>MC_ROLLRATE_FF, MC_ROLLRATE_K</td>
+                        <td>Roll rate feedforward and global gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_PITCHRATE_P, MC_PITCHRATE_I, MC_PITCHRATE_D</td>
+                        <td>Pitch rate PID gains</td>
+                    </tr>
+                    <tr>
+                        <td>MC_PITCHRATE_FF, MC_PITCHRATE_K</td>
+                        <td>Pitch rate feedforward and global gain</td>
+                    </tr>
+                    <tr>
+                        <td>MC_YAWRATE_P, MC_YAWRATE_I, MC_YAWRATE_D</td>
+                        <td>Yaw rate PID gains</td>
+                    </tr>
+                    <tr>
+                        <td>MC_YAWRATE_FF, MC_YAWRATE_K</td>
+                        <td>Yaw rate feedforward and global gain</td>
                     </tr>
                 </tbody>
             </table>
@@ -276,8 +336,10 @@
                 </li>
                 <li><strong>Performance optimization:</strong> For \(\lvert \tanh(x) - x \rvert < 0.01\) when \(x \in
                         [-0.3, 0.3]\), we skip squashing to improve performance.</li>
-                <li><strong>Velocity control:</strong> The system uses a two-stage approach: electrostatic field for
-                    direction guidance and PID control for velocity tracking.</li>
+                <li><strong>Velocity control:</strong> The system uses VFF guidance for direction and speed, followed by
+                    a PX4-like cascaded control architecture for precise velocity and attitude tracking.</li>
+                <li><strong>Slow-down behavior:</strong> The velocity magnitude scales linearly with distance to goal
+                    (below \(d_{\text{slow}}\)), with a minimum of \(v_{\text{ideal}}/3\).</li>
             </ul>
         </section>
 

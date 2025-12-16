@@ -69,6 +69,14 @@ sudo ./install_geographiclib_datasets.sh</code></pre>
             <h3>Clone the Repository</h3>
             <pre><code>git clone https://github.com/miguel-usp/vff-nav.git</code></pre>
 
+
+            <h3>Offboard Velocity Package (run once)</h3>
+            <pre><code>source /opt/ros/jazzy/setup.bash
+cd ~/vff-nav/ros_sim
+rm -rf build/ install/ log/
+colcon build
+source install/setup.bash</code></pre>
+
             <h3>Web Controller Setup (run once)</h3>
             <pre><code>cd ~/vff-nav/ros_sim/other_commands
 python3 -m venv .venv
